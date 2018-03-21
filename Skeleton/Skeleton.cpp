@@ -19,7 +19,7 @@
 //
 // NYILATKOZAT
 // ---------------------------------------------------------------------------------------------
-// Nev    : Kovacs David
+// Nev    : Kovacs David	
 // Neptun : UT55G0
 // ---------------------------------------------------------------------------------------------
 // ezennel kijelentem, hogy a feladatot magam keszitettem, es ha barmilyen segitseget igenybe vettem vagy
@@ -32,7 +32,7 @@
 // Tudomasul veszem, hogy a forrasmegjeloles kotelmenek megsertese eseten a hazifeladatra adhato pontokat
 // negativ elojellel szamoljak el es ezzel parhuzamosan eljaras is indul velem szemben.
 //=============================================================================================
-#define _USE_MATH_DEFINES		// M_PI
+#define _USE_MATH_DEFINES		// Van M_PI
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -149,9 +149,9 @@ struct vec4 {
 
 	vec4 operator*(const mat4& mat) const {
 		return vec4(x * mat.m[0][0] + y * mat.m[1][0] + z * mat.m[2][0] + w * mat.m[3][0],
-				    x * mat.m[0][1] + y * mat.m[1][1] + z * mat.m[2][1] + w * mat.m[3][1], 
-					x * mat.m[0][2] + y * mat.m[1][2] + z * mat.m[2][2] + w * mat.m[3][2], 
-					x * mat.m[0][3] + y * mat.m[1][3] + z * mat.m[2][3] + w * mat.m[3][3]);
+			x * mat.m[0][1] + y * mat.m[1][1] + z * mat.m[2][1] + w * mat.m[3][1],
+			x * mat.m[0][2] + y * mat.m[1][2] + z * mat.m[2][2] + w * mat.m[3][2],
+			x * mat.m[0][3] + y * mat.m[1][3] + z * mat.m[2][3] + w * mat.m[3][3]);
 	}
 };
 
@@ -173,39 +173,39 @@ public:
 		unsigned int vbo[2];		// vertex buffer objects
 		glGenBuffers(2, &vbo[0]);	// Generate 2 vertex buffer objects
 
-		// vertex coordinates: vbo[0] -> Attrib Array 0 -> vertexPosition of the vertex shader
+									// vertex coordinates: vbo[0] -> Attrib Array 0 -> vertexPosition of the vertex shader
 		glBindBuffer(GL_ARRAY_BUFFER, vbo[0]); // make it active, it is an array
 		float vertexCoords[] = { -8, -8,   -6, 10,   8, -2 };	// vertex data on the CPU
 		glBufferData(GL_ARRAY_BUFFER,      // copy to the GPU
-			         sizeof(vertexCoords), // number of the vbo in bytes
-					 vertexCoords,		   // address of the data array on the CPU
-					 GL_STATIC_DRAW);	   // copy to that part of the memory which is not modified 
-		// Map Attribute Array 0 to the current bound vertex buffer (vbo[0])
-		glEnableVertexAttribArray(0); 
+			sizeof(vertexCoords), // number of the vbo in bytes
+			vertexCoords,		   // address of the data array on the CPU
+			GL_STATIC_DRAW);	   // copy to that part of the memory which is not modified 
+								   // Map Attribute Array 0 to the current bound vertex buffer (vbo[0])
+		glEnableVertexAttribArray(0);
 		// Data organization of Attribute Array 0 
 		glVertexAttribPointer(0,			// Attribute Array 0
-			                  2, GL_FLOAT,  // components/attribute, component type
-							  GL_FALSE,		// not in fixed point format, do not normalized
-							  0, NULL);     // stride and offset: it is tightly packed
+			2, GL_FLOAT,  // components/attribute, component type
+			GL_FALSE,		// not in fixed point format, do not normalized
+			0, NULL);     // stride and offset: it is tightly packed
 
-		// vertex colors: vbo[1] -> Attrib Array 1 -> vertexColor of the vertex shader
+						  // vertex colors: vbo[1] -> Attrib Array 1 -> vertexColor of the vertex shader
 		glBindBuffer(GL_ARRAY_BUFFER, vbo[1]); // make it active, it is an array
 		float vertexColors[] = { 1, 0, 0,   0, 1, 0,   0, 0, 1 };	// vertex data on the CPU
 		glBufferData(GL_ARRAY_BUFFER, sizeof(vertexColors), vertexColors, GL_STATIC_DRAW);	// copy to the GPU
 
-		// Map Attribute Array 1 to the current bound vertex buffer (vbo[1])
+																							// Map Attribute Array 1 to the current bound vertex buffer (vbo[1])
 		glEnableVertexAttribArray(1);  // Vertex position
-		// Data organization of Attribute Array 1
+									   // Data organization of Attribute Array 1
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL); // Attribute Array 1, components/attribute, component type, normalize?, tightly packed
 	}
 
 	void Animate(float t) { phi = t; }
 
 	void Draw() {
-		mat4 MVPTransform( 0.1f * cosf(phi), 0.1f * sinf(phi), 0, 0,
-						  -0.1f * sinf(phi), 0.1f * cosf(phi), 0, 0,
-							     0,            0,              1, 0,
-							     0,            0,              0, 1); 
+		mat4 MVPTransform(0.1 * cos(phi), 0.1 * sin(phi), 0, 0,
+			-0.1 * sin(phi), 0.1 * cos(phi), 0, 0,
+			0, 0, 1, 0,
+			0, 0, 0, 1);
 
 		// set GPU uniform matrix variable MVP with the content of CPU variable MVPTransform
 		int location = glGetUniformLocation(shaderProgram, "MVP");
@@ -217,15 +217,203 @@ public:
 	}
 };
 
+class Circle {
+	unsigned int vao;	// vertex array object id
+	float phi;			// rotation
+	float pi = M_PI;
+	float radius;
+public:
+	Circle() {
+		Animate(0);
+	}
+
+	void Create(float rad, float cx, float cy, int r, int g, int b) {
+		glGenVertexArrays(1, &vao);	// create 1 vertex array object
+		glBindVertexArray(vao);		// make it active
+
+		unsigned int vbo[2];		// vertex buffer objects
+		glGenBuffers(2, &vbo[0]);	// Generate 2 vertex buffer objects
+
+									// vertex coordinates: vbo[0] -> Attrib Array 0 -> vertexPosition of the vertex shader
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[0]); // make it active, it is an array
+
+		float c[] = { cx, cy };
+		float x[50];
+		float y[50];
+		radius = rad;
+
+		for (int i = 0; i < 50; i++) {			
+			x[i] = c[0] + radius*cosf(i*(2*pi/50));
+			y[i] = c[1] + radius*sinf(i*(2*pi/50));				
+		}
+
+		float vertexCoords[100];	// vertex data on the CPU
+		int t = 0;
+		for (int i = 0; i < 100; i++) {			
+			vertexCoords[t] = x[i];
+			vertexCoords[t + 1] = y[i];
+			t = t + 2;
+		}
+
+		glBufferData(GL_ARRAY_BUFFER,      // copy to the GPU
+			sizeof(vertexCoords),   // number of the vbo in bytes
+			vertexCoords,		   // address of the data array on the CPU
+			GL_STATIC_DRAW);
+		
+			   // copy to that part of the memory which is not modified 
+								   // Map Attribute Array 0 to the current bound vertex buffer (vbo[0])
+		glEnableVertexAttribArray(0);
+		// Data organization of Attribute Array 0 
+		glVertexAttribPointer(0,			// Attribute Array 0
+			2, GL_FLOAT,  // components/attribute, component type
+			GL_FALSE,		// not in fixed point format, do not normalized
+			0, NULL);     // stride and offset: it is tightly packed
+
+						  // vertex colors: vbo[1] -> Attrib Array 1 -> vertexColor of the vertex shader
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[1]); // make it active, it is an array
+
+		float vertexColors[150];	// vertex data on the CPU
+
+		for (int i = 0; i < 150; i=i+3) {
+			vertexColors[i] = r;
+			vertexColors[i + 1] = g;
+			vertexColors[i + 2] = b;
+		}
+
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertexColors), vertexColors, GL_STATIC_DRAW);	// copy to the GPU
+
+																							// Map Attribute Array 1 to the current bound vertex buffer (vbo[1])
+		glEnableVertexAttribArray(1);  // Vertex position
+									   // Data organization of Attribute Array 1
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL); // Attribute Array 1, components/attribute, component type, normalize?, tightly packed
+	}
+
+	void Animate(float t) { phi = t; }
+
+	void Draw() {
+		mat4 MVPTransform(  1, 0, 0, 0,
+							0, 1, 0, 0,
+							0, 0, 1, 0,
+							0, 0, 0, 1);
+
+		// set GPU uniform matrix variable MVP with the content of CPU variable MVPTransform
+		int location = glGetUniformLocation(shaderProgram, "MVP");
+		if (location >= 0) glUniformMatrix4fv(location, 1, GL_TRUE, MVPTransform); // set uniform variable MVP to the MVPTransform
+		else printf("uniform MVP cannot be set\n");
+
+		glBindVertexArray(vao);	// make the vao and its vbos active playing the role of the data source
+		glDrawArrays(GL_TRIANGLE_FAN, 0, 50);	// draw a single triangle with vertices defined in vao
+	}
+};
+
+class Elips {
+	unsigned int vao;	// vertex array object id
+	float phi;			// rotation
+	float pi = M_PI;
+	float radius;
+public:
+	Elips() {
+		Animate(0);
+	}
+
+	void Create(float rad, float cx, float cy, int r, int g, int b) {
+		glGenVertexArrays(1, &vao);	// create 1 vertex array object
+		glBindVertexArray(vao);		// make it active
+
+		unsigned int vbo[2];		// vertex buffer objects
+		glGenBuffers(2, &vbo[0]);	// Generate 2 vertex buffer objects
+
+									// vertex coordinates: vbo[0] -> Attrib Array 0 -> vertexPosition of the vertex shader
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[0]); // make it active, it is an array
+
+		float c[] = { cx, cy };
+		float x[50];
+		float y[50];
+		radius = rad;
+
+		for (int i = 0; i < 50; i++) {
+			x[i] = c[0] + radius * cosf(i*(2 * pi / 50));
+			y[i] = c[1] + radius * sinf(i*(2 * pi / 50));
+		}
+
+		float vertexCoords[100];	// vertex data on the CPU
+		int t = 0;
+		for (int i = 0; i < 100; i++) {
+			vertexCoords[t] = x[i];
+			vertexCoords[t + 1] = y[i];
+			t = t + 2;
+		}
+
+		glBufferData(GL_ARRAY_BUFFER,      // copy to the GPU
+			sizeof(vertexCoords),   // number of the vbo in bytes
+			vertexCoords,		   // address of the data array on the CPU
+			GL_STATIC_DRAW);
+
+		// copy to that part of the memory which is not modified 
+		// Map Attribute Array 0 to the current bound vertex buffer (vbo[0])
+		glEnableVertexAttribArray(0);
+		// Data organization of Attribute Array 0 
+		glVertexAttribPointer(0,			// Attribute Array 0
+			2, GL_FLOAT,  // components/attribute, component type
+			GL_FALSE,		// not in fixed point format, do not normalized
+			0, NULL);     // stride and offset: it is tightly packed
+
+						  // vertex colors: vbo[1] -> Attrib Array 1 -> vertexColor of the vertex shader
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[1]); // make it active, it is an array
+
+		float vertexColors[150];	// vertex data on the CPU
+
+		for (int i = 0; i < 150; i = i + 3) {
+			vertexColors[i] = r;
+			vertexColors[i + 1] = g;
+			vertexColors[i + 2] = b;
+		}
+
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertexColors), vertexColors, GL_STATIC_DRAW);	// copy to the GPU
+
+																							// Map Attribute Array 1 to the current bound vertex buffer (vbo[1])
+		glEnableVertexAttribArray(1);  // Vertex position
+									   // Data organization of Attribute Array 1
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL); // Attribute Array 1, components/attribute, component type, normalize?, tightly packed
+	}
+
+	void Animate(float t) { phi = t; }
+
+	void Draw() {
+		mat4 MVPTransform(	0.4, 0, 0, 0,
+							0, 1, 0, 0,
+							0, 0, 1, 0,
+							0, 0, 0, 1);
+
+		// set GPU uniform matrix variable MVP with the content of CPU variable MVPTransform
+		int location = glGetUniformLocation(shaderProgram, "MVP");
+		if (location >= 0) glUniformMatrix4fv(location, 1, GL_TRUE, MVPTransform); // set uniform variable MVP to the MVPTransform
+		else printf("uniform MVP cannot be set\n");
+
+		glBindVertexArray(vao);	// make the vao and its vbos active playing the role of the data source
+		glDrawArrays(GL_TRIANGLE_FAN, 0, 50);	// draw a single triangle with vertices defined in vao
+	}
+};
+
 // The virtual world
-Triangle triangle;
+Circle circle1;
+Elips butterfly;
+Circle circle2;
+Circle circle3;
+Circle circle4;
+Circle circle5;
 
 // Initialization, create an OpenGL context
 void onInitialization() {
 	glViewport(0, 0, windowWidth, windowHeight);
 
 	// Create objects by setting up their vertex data on the GPU
-	triangle.Create();
+	circle1.Create(0.1, 0, 0, 1, 1, 0);
+	butterfly.Create(0.08, 0, 0, 1, 0, 0);
+	circle2.Create(0.11, 0.08, 0.08, 0, 0, 1);
+	circle3.Create(0.11, -0.08, -0.08, 0, 0, 1);
+	circle4.Create(0.11, -0.08, 0.08, 0, 0, 1);
+	circle5.Create(0.11, 0.08, -0.08, 0, 0, 1);
 
 	// Create vertex shader from string
 	unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -250,7 +438,7 @@ void onInitialization() {
 	// Connect the fragmentColor to the frame buffer memory
 	glBindFragDataLocation(shaderProgram, 0, "fragmentColor");	// fragmentColor goes to the frame buffer memory
 
-	// program packaging
+																// program packaging
 	glLinkProgram(shaderProgram);
 	checkLinking(shaderProgram);
 	// make this program run
@@ -264,9 +452,14 @@ void onExit() {
 
 // Window has become invalid: Redraw
 void onDisplay() {
-	glClearColor(0, 0, 0, 0);							// background color 
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the screen
-	triangle.Draw();
+	glClearColor(0, 0.2, 0, 0);							// background color 
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the screen	
+	circle2.Draw();
+	circle3.Draw();
+	circle4.Draw();
+	circle5.Draw();
+	circle1.Draw();
+	butterfly.Draw();
 	glutSwapBuffers();									// exchange the two buffers
 }
 
@@ -296,7 +489,7 @@ void onMouseMotion(int pX, int pY) {
 void onIdle() {
 	long time = glutGet(GLUT_ELAPSED_TIME); // elapsed time since the start of the program
 	float sec = time / 1000.0f;				// convert msec to sec
-	triangle.Animate(sec);					// animate the triangle object
+	//triangle.Animate(sec);					// animate the triangle object
 	glutPostRedisplay();					// redraw the scene
 }
 
@@ -343,4 +536,3 @@ int main(int argc, char * argv[]) {
 	onExit();
 	return 1;
 }
-
