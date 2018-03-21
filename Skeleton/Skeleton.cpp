@@ -305,7 +305,6 @@ public:
 		int location = glGetUniformLocation(shaderProgram, "MVP");
 		if (location >= 0) glUniformMatrix4fv(location, 1, GL_TRUE, MVPTransform); // set uniform variable MVP to the MVPTransform
 		else printf("uniform MVP cannot be set\n");
-		printf("kör draw");
 
 		glBindVertexArray(vao);	// make the vao and its vbos active playing the role of the data source
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 50);	// draw a single triangle with vertices defined in vao
@@ -339,7 +338,7 @@ public:
 		Animate(0);
 	}
 
-	void Create(float cx, float cy, float yo, float rad, int r, int g, int b) {
+	void Create(float cx, float cy, float yo, float rad, float fi, int r, int g, int b) {
 		glGenVertexArrays(1, &vao);	// create 1 vertex array object
 		glBindVertexArray(vao);		// make it active
 
@@ -350,6 +349,7 @@ public:
 		glBindBuffer(GL_ARRAY_BUFFER, vbo[0]); // make it active, it is an array
 		x = cx;
 		y = cy;
+		phi = fi;
 		float c[] = { cx, cy };
 		float x[50];
 		float y[50];
@@ -403,16 +403,28 @@ public:
 	void Animate(float t) { phi = t; }
 
 	void Draw() {
-		mat4 MVPTransform(	1, 0, 0, 0,
-							0, 1, 0, 0,
+		mat4 MVPTransform(	cos(phi), sin(phi), 0, 0,
+							-sin(phi), cos(phi), 0, 0,
 							0, 0, 1, 0,
 							0, 0, 0, 1);
 
+		mat4 pushMatrix(	1, 0, 0, 0,
+							0, 1, 0, 0,
+							0, 0, 1, 0,
+						   -x, -y, 0, 1);
+
+		mat4 pushBackMatrix(	1, 0, 0, 0,
+								0, 1, 0, 0,
+								0, 0, 1, 0,
+								x, y, 0, 1);
+
+		mat4 multi = pushMatrix * MVPTransform * pushBackMatrix;
+
+
 		// set GPU uniform matrix variable MVP with the content of CPU variable MVPTransform
 		int location = glGetUniformLocation(shaderProgram, "MVP");
-		if (location >= 0) glUniformMatrix4fv(location, 1, GL_TRUE, MVPTransform); // set uniform variable MVP to the MVPTransform
+		if (location >= 0) glUniformMatrix4fv(location, 1, GL_TRUE, multi); // set uniform variable MVP to the MVPTransform
 		else printf("uniform MVP cannot be set\n");
-		printf("levél draw: %f, %f /n", x, y);
 
 		glBindVertexArray(vao);	// make the vao and its vbos active playing the role of the data source
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 50);	// draw a single triangle with vertices defined in vao
@@ -440,65 +452,74 @@ void onInitialization() {
 	middle.Create(0.1, 0, 0, 1, 1, 0, 3);
 	float cx1[3];
 	float cy1[3];
+	float phi1[3];
 
 	for (int i = 0; i < 3; i++) {
 		cx1[i] = middle.getCx() + 0.1 * cosf(i*(2 * M_PI / 3));
 		cy1[i] = middle.getCy() + 0.1 * sinf(i*(2 * M_PI / 3));
+		phi1[i] = i * (2 * M_PI / 3);
 	}
 	leaves1 = new Leaves[3];
 	for (int i = 0; i < 3; i++) {
-		leaves1[i].Create(cx1[i], cy1[i], 3, 0.1, 0, 0, 1);
+		leaves1[i].Create(cx1[i], cy1[i], 1, 0.1, phi1[i], 0, 0, 1);
 	}
 
 	middle2.Create(0.1, 0.5, 0.5, 1, 1, 0, 5);
 	float cx2[5];
 	float cy2[5];
+	float phi2[5];
 
 	for (int i = 0; i < 5; i++) {
 		cx2[i] = middle2.getCx() + 0.1 * cosf(i*(2 * M_PI / 5));
 		cy2[i] = middle2.getCy() + 0.1 * sinf(i*(2 * M_PI / 5));
+		phi2[i] = i * (2 * M_PI / 5);
 	}
 	leaves2 = new Leaves[5];
 	for (int i = 0; i < 5; i++) {
-		leaves2[i].Create(cx2[i], cy2[i], 3, 0.1, 0, 0, 1);
+		leaves2[i].Create(cx2[i], cy2[i], 2, 0.1, phi2[i], 0, 0, 1);
 	}
 
 	middle3.Create(0.1, 0.5, -0.5, 1, 1, 0, 8);
 	float cx3[8];
 	float cy3[8];
-
+	float phi3[8];
 	for (int i = 0; i < 8; i++) {
 		cx3[i] = middle3.getCx() + 0.1 * cosf(i*(2 * M_PI / 8));
 		cy3[i] = middle3.getCy() + 0.1 * sinf(i*(2 * M_PI / 8));
+		phi3[i] = i * (2 * M_PI / 8);
 	}
 	leaves3 = new Leaves[8];
 	for (int i = 0; i < 8; i++) {
-		leaves3[i].Create(cx3[i], cy3[i], 3, 0.1, 0, 0, 1);
+		leaves3[i].Create(cx3[i], cy3[i], 3, 0.1, phi3[i], 0, 0, 1);
 	}
 
 	middle4.Create(0.1, -0.5, 0.5, 1, 1, 0, 13);
 	float cx4[13];
 	float cy4[13];
+	float phi4[13];
 
 	for (int i = 0; i < 13; i++) {
 		cx4[i] = middle4.getCx() + 0.1 * cosf(i*(2 * M_PI / 13));
 		cy4[i] = middle4.getCy() + 0.1 * sinf(i*(2 * M_PI / 13));
+		phi4[i] = i * (2 * M_PI / 13);
 	}
 	leaves4 = new Leaves[13];
 	for (int i = 0; i < 13; i++) {
-		leaves4[i].Create(cx4[i], cy4[i], 3, 0.1, 0, 0, 1);
+		leaves4[i].Create(cx4[i], cy4[i], 4, 0.1, phi4[i], 0, 0, 1);
 	}
 	middle5.Create(0.1, -0.5, -0.5, 1, 1, 0, 21);
 	float cx5[21];
 	float cy5[21];
+	float phi5[21];
 
 	for (int i = 0; i < 21; i++) {
 		cx5[i] = middle5.getCx() + 0.1 * cosf(i*(2 * M_PI / 21));
 		cy5[i] = middle5.getCy() + 0.1 * sinf(i*(2 * M_PI / 21));
+		phi5[i] = i * (2 * M_PI / 21);
 	}
 	leaves5 = new Leaves[21];
 	for (int i = 0; i < 21; i++) {
-		leaves5[i].Create(cx5[i], cy5[i], 3, 0.1, 0, 0, 1);
+		leaves5[i].Create(cx5[i], cy5[i], 5, 0.1, phi5[i], 0, 0, 1);
 	}
 
 	// Create vertex shader from string
@@ -545,23 +566,27 @@ void onExit() {
 void onDisplay() {
 	glClearColor(0, 0.2, 0, 0);							// background color 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the screen
-	middle.Draw();
+	//first flower
 	for (int i = 0; i < middle.getLeaves(); i++) {
 		leaves1[i].Draw();
 	}
-	
+	middle.Draw();
+	//second flower
 	for (int i = 0; i < middle2.getLeaves(); i++) {
 		leaves2[i].Draw();
 	}
 	middle2.Draw();
+	//third flower
 	for (int i = 0; i < middle3.getLeaves(); i++) {
 		leaves3[i].Draw();
 	}
 	middle3.Draw();
+	//fourth flower
 	for (int i = 0; i < middle4.getLeaves(); i++) {
 		leaves4[i].Draw();
 	}
 	middle4.Draw();
+	//fifth flower
 	for (int i = 0; i < middle5.getLeaves(); i++) {
 		leaves5[i].Draw();
 	}
@@ -592,12 +617,12 @@ void onMouseMotion(int pX, int pY) {
 }
 
 // Idle event indicating that some time elapsed: do animation here
-/*void onIdle() {
+void onIdle() {
 	long time = glutGet(GLUT_ELAPSED_TIME); // elapsed time since the start of the program
 	float sec = time / 1000.0f;				// convert msec to sec
 	//triangle.Animate(sec);					// animate the triangle object
 	glutPostRedisplay();					// redraw the scene
-}*/
+}
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Do not touch the code below this line
@@ -633,7 +658,7 @@ int main(int argc, char * argv[]) {
 
 	glutDisplayFunc(onDisplay);                // Register event handlers
 	glutMouseFunc(onMouse);
-	//glutIdleFunc(onIdle);
+	glutIdleFunc(onIdle);
 	glutKeyboardFunc(onKeyboard);
 	glutKeyboardUpFunc(onKeyboardUp);
 	glutMotionFunc(onMouseMotion);
