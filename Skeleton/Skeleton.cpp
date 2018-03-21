@@ -222,12 +222,13 @@ class Circle {
 	float phi;			// rotation
 	float pi = M_PI;
 	float radius;
+	int leaves;
 public:
 	Circle() {
 		Animate(0);
 	}
 
-	void Create(float rad, float cx, float cy, int r, int g, int b) {
+	void Create(float rad, float cx, float cy, int r, int g, int b, int leaf) {
 		glGenVertexArrays(1, &vao);	// create 1 vertex array object
 		glBindVertexArray(vao);		// make it active
 
@@ -237,14 +238,14 @@ public:
 									// vertex coordinates: vbo[0] -> Attrib Array 0 -> vertexPosition of the vertex shader
 		glBindBuffer(GL_ARRAY_BUFFER, vbo[0]); // make it active, it is an array
 
+		leaves = leaf;
 		float c[] = { cx, cy };
 		float x[50];
 		float y[50];
-		radius = rad;
 
 		for (int i = 0; i < 50; i++) {			
-			x[i] = c[0] + radius*cosf(i*(2*pi/50));
-			y[i] = c[1] + radius*sinf(i*(2*pi/50));				
+			x[i] = c[0] + rad*cosf(i*(2*pi/50));
+			y[i] = c[1] + rad*sinf(i*(2*pi/50));				
 		}
 
 		float vertexCoords[100];	// vertex data on the CPU
@@ -287,7 +288,7 @@ public:
 									   // Data organization of Attribute Array 1
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL); // Attribute Array 1, components/attribute, component type, normalize?, tightly packed
 	}
-
+	
 	void Animate(float t) { phi = t; }
 
 	void Draw() {
@@ -304,15 +305,18 @@ public:
 		glBindVertexArray(vao);	// make the vao and its vbos active playing the role of the data source
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 50);	// draw a single triangle with vertices defined in vao
 	}
+	int getLeaves() {
+		return leaves;
+	}
 };
 
-class Elips {
+class Leaves {
 	unsigned int vao;	// vertex array object id
 	float phi;			// rotation
 	float pi = M_PI;
 	float radius;
 public:
-	Elips() {
+	Leaves() {
 		Animate(0);
 	}
 
@@ -329,11 +333,10 @@ public:
 		float c[] = { cx, cy };
 		float x[50];
 		float y[50];
-		radius = rad;
 
 		for (int i = 0; i < 50; i++) {
-			x[i] = c[0] + radius * cosf(i*(2 * pi / 50));
-			y[i] = c[1] + radius * sinf(i*(2 * pi / 50));
+			x[i] = c[0] + rad * cosf(i*(2 * pi / 50));
+			y[i] = c[1] + rad * sinf(i*(2 * pi / 50));
 		}
 
 		float vertexCoords[100];	// vertex data on the CPU
@@ -380,7 +383,7 @@ public:
 	void Animate(float t) { phi = t; }
 
 	void Draw() {
-		mat4 MVPTransform(	0.4, 0, 0, 0,
+		mat4 MVPTransform(	1, 0, 0, 0,
 							0, 1, 0, 0,
 							0, 0, 1, 0,
 							0, 0, 0, 1);
@@ -402,98 +405,58 @@ Circle middle2;
 Circle middle3;
 Circle middle4;
 Circle middle5;
-//Elips butterflybody;
-//First leaves
-Circle leaf11;
-Circle leaf12;
-Circle leaf13;
-//Second leaves
-Circle leaf21;
-Circle leaf22;
-Circle leaf23;
-Circle leaf24;
-Circle leaf25;
-//Third leaves
-Circle leaf31;
-Circle leaf32;
-Circle leaf33;
-Circle leaf34;
-Circle leaf35;
-Circle leaf36;
-Circle leaf37;
-Circle leaf38;
-//Fourth leaves
-Circle leaf41;
-Circle leaf42;
-Circle leaf43;
-Circle leaf44;
-Circle leaf45;
-Circle leaf46;
-Circle leaf47;
-Circle leaf48;
-Circle leaf49;
-Circle leaf410;
-Circle leaf411;
-Circle leaf412;
-Circle leaf413;
-//Fifth leaves
-Circle leaf51;
-Circle leaf52;
-Circle leaf53;
-Circle leaf54;
-Circle leaf55;
-Circle leaf56;
-Circle leaf57;
-Circle leaf58;
-Circle leaf59;
-Circle leaf510;
-Circle leaf511;
-Circle leaf512;
-Circle leaf513;
-Circle leaf514;
-Circle leaf515;
-Circle leaf516;
-Circle leaf517;
-Circle leaf518;
-Circle leaf519;
-Circle leaf520;
-Circle leaf521;
+Leaves* leaves1 = new Leaves[];
+Leaves* leaves2 = new Leaves[];
+Leaves* leaves3 = new Leaves[];
+Leaves* leaves4 = new Leaves[];
+Leaves* leaves5 = new Leaves[];
 
 // Initialization, create an OpenGL context
 void onInitialization() {
 	glViewport(0, 0, windowWidth, windowHeight);
 
-	// Create objects by setting up their vertex data on the GPU
-	//first flower
-	leaf11.Create(0.11, 0, 0.1, 0, 0, 1);
-	leaf12.Create(0.11, -0.085, -0.05, 0, 0, 1);
-	leaf13.Create(0.11, 0.085, -0.05, 0, 0, 1);
-	middle.Create(0.1, 0, 0, 1, 1, 0);
-	//second flower
-	leaf21.Create(0.08, 0.5, 0.65, 0, 0, 1 );
-	leaf22.Create(0.08, 0.42, 0.395, 0, 0, 1);
-	leaf23.Create(0.08, 0.57, 0.395, 0, 0, 1);
-	leaf24.Create(0.08, 0.38, 0.55, 0, 0, 1);
-	leaf25.Create(0.08, 0.61, 0.55, 0, 0, 1);
-	middle2.Create(0.1, 0.5, 0.5, 1, 1, 0);
-	//third flower 0.0785
-	leaf31.Create(0.06, 0.5, -0.65, 0, 0, 1);
-	leaf32.Create(0.06, 0.5, -0.35, 0, 0, 1);
-	leaf33.Create(0.06, 0.65, -0.5, 0, 0, 1);
-	leaf34.Create(0.06, 0.35, -0.5, 0, 0, 1);
-	leaf35.Create(0.06, 0.6, -0.6, 0, 0, 1);
-	leaf36.Create(0.06, 0.6, -0.4, 0, 0, 1);
-	leaf37.Create(0.06, 0.4, -0.6, 0, 0, 1);
-	leaf38.Create(0.06, 0.4, -0.4, 0, 0, 1);
-	middle3.Create(0.1, 0.5, -0.5, 1, 1, 0);
-	//fourth flower
+	// Create objects by setting up their vertex data on the GPU	
+	middle.Create(0.1, 0, 0, 1, 1, 0, 3);
+	int leaf1 = middle.getLeaves();
+	while (leaf1 > 0) {
+		int i = 0;		
+		leaves1[i].Create(); //TODO
+		i++;
+		leaf1--;
+	}
 
-	middle4.Create(0.1, -0.5, 0.5, 1, 1, 0);
-	//fifth flower
-
-	middle5.Create(0.1, -0.5, -0.5, 1, 1, 0);
-	//butterflybody.Create(0.08, 0, 0, 1, 0, 0);
-	
+	middle2.Create(0.1, 0.5, 0.5, 1, 1, 0, 5);
+	int leaf2 = middle2.getLeaves();
+	while (leaf2 > 0) {
+		int i = 0;
+		leaves2[i].Create(); //TODO
+		i++;
+		leaf2--;
+	}
+	middle3.Create(0.1, 0.5, -0.5, 1, 1, 0, 8);
+	int leaf3 = middle3.getLeaves();
+	while (leaf3 > 0) {
+		int i = 0;
+		leaves3[i].Create(); //TODO
+		i++;
+		leaf3--;
+	}
+	middle4.Create(0.1, -0.5, 0.5, 1, 1, 0, 13);
+	int leaf4 = middle4.getLeaves();
+	while (leaf4 > 0) {
+		int i = 0;
+		leaves4[i].Create(); //TODO
+		i++;
+		leaf4--;
+	}
+	middle5.Create(0.1, -0.5, -0.5, 1, 1, 0, 21);
+	int leaf5 = middle5.getLeaves();
+	while (leaf5 > 0) {
+		int i = 0;
+		leaves5[i].Create(); //TODO
+		i++;
+		leaf5--;
+	}
 
 	// Create vertex shader from string
 	unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -528,37 +491,57 @@ void onInitialization() {
 void onExit() {
 	glDeleteProgram(shaderProgram);
 	printf("exit");
+	delete leaves1;
+	delete leaves2;
+	delete leaves3;
+	delete leaves4;
+	delete leaves5;
 }
 
 // Window has become invalid: Redraw
 void onDisplay() {
 	glClearColor(0, 0.2, 0, 0);							// background color 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the screen
-	//First flower
-	leaf11.Draw();
-	leaf12.Draw();
-	leaf13.Draw();
+	int l1 = middle.getLeaves();
+	while (l1 > 0) {
+		int i = 0;
+		leaves1[i].Draw();
+		i++;
+		l1--;
+	}
 	middle.Draw();
-	//Second flower
-	leaf21.Draw();
-	leaf22.Draw();
-	leaf23.Draw();
-	leaf24.Draw();
-	leaf25.Draw();
+	int l2 = middle2.getLeaves();
+	while (l2 > 0) {
+		int i = 0;
+		leaves2[i].Draw();
+		i++;
+		l2--;
+	}
 	middle2.Draw();
-	//Third flower
-	leaf31.Draw();
-	leaf32.Draw();
-	leaf33.Draw();
-	leaf34.Draw();
-	leaf35.Draw();
-	leaf36.Draw();
-	leaf37.Draw();
-	leaf38.Draw();
+	int l3 = middle3.getLeaves();
+	while (l3 > 0) {
+		int i = 0;
+		leaves3[i].Draw();
+		i++;
+		l3--;
+	}
 	middle3.Draw();
+	int l4 = middle4.getLeaves();
+	while (l4 > 0) {
+		int i;
+		leaves4[i].Draw();
+		i++;
+		l4--;
+	}
 	middle4.Draw();
+	int l5 = middle5.getLeaves();
+	while (l5 > 0) {
+		int i = 0;
+		leaves5[i].Draw();
+		i++;
+		l5--;
+	}
 	middle5.Draw();
-	//butterflybody.Draw();
 	glutSwapBuffers();									// exchange the two buffers
 }
 
