@@ -396,24 +396,104 @@ public:
 };
 
 // The virtual world
-Circle circle1;
-Elips butterfly;
-Circle circle2;
-Circle circle3;
-Circle circle4;
-Circle circle5;
+//Flower middles
+Circle middle;
+Circle middle2;
+Circle middle3;
+Circle middle4;
+Circle middle5;
+//Elips butterflybody;
+//First leaves
+Circle leaf11;
+Circle leaf12;
+Circle leaf13;
+//Second leaves
+Circle leaf21;
+Circle leaf22;
+Circle leaf23;
+Circle leaf24;
+Circle leaf25;
+//Third leaves
+Circle leaf31;
+Circle leaf32;
+Circle leaf33;
+Circle leaf34;
+Circle leaf35;
+Circle leaf36;
+Circle leaf37;
+Circle leaf38;
+//Fourth leaves
+Circle leaf41;
+Circle leaf42;
+Circle leaf43;
+Circle leaf44;
+Circle leaf45;
+Circle leaf46;
+Circle leaf47;
+Circle leaf48;
+Circle leaf49;
+Circle leaf410;
+Circle leaf411;
+Circle leaf412;
+Circle leaf413;
+//Fifth leaves
+Circle leaf51;
+Circle leaf52;
+Circle leaf53;
+Circle leaf54;
+Circle leaf55;
+Circle leaf56;
+Circle leaf57;
+Circle leaf58;
+Circle leaf59;
+Circle leaf510;
+Circle leaf511;
+Circle leaf512;
+Circle leaf513;
+Circle leaf514;
+Circle leaf515;
+Circle leaf516;
+Circle leaf517;
+Circle leaf518;
+Circle leaf519;
+Circle leaf520;
+Circle leaf521;
 
 // Initialization, create an OpenGL context
 void onInitialization() {
 	glViewport(0, 0, windowWidth, windowHeight);
 
 	// Create objects by setting up their vertex data on the GPU
-	circle1.Create(0.1, 0, 0, 1, 1, 0);
-	butterfly.Create(0.08, 0, 0, 1, 0, 0);
-	circle2.Create(0.11, 0.08, 0.08, 0, 0, 1);
-	circle3.Create(0.11, -0.08, -0.08, 0, 0, 1);
-	circle4.Create(0.11, -0.08, 0.08, 0, 0, 1);
-	circle5.Create(0.11, 0.08, -0.08, 0, 0, 1);
+	//first flower
+	leaf11.Create(0.11, 0, 0.1, 0, 0, 1);
+	leaf12.Create(0.11, -0.085, -0.05, 0, 0, 1);
+	leaf13.Create(0.11, 0.085, -0.05, 0, 0, 1);
+	middle.Create(0.1, 0, 0, 1, 1, 0);
+	//second flower
+	leaf21.Create(0.08, 0.5, 0.65, 0, 0, 1 );
+	leaf22.Create(0.08, 0.42, 0.395, 0, 0, 1);
+	leaf23.Create(0.08, 0.57, 0.395, 0, 0, 1);
+	leaf24.Create(0.08, 0.38, 0.55, 0, 0, 1);
+	leaf25.Create(0.08, 0.61, 0.55, 0, 0, 1);
+	middle2.Create(0.1, 0.5, 0.5, 1, 1, 0);
+	//third flower 0.0785
+	leaf31.Create(0.06, 0.5, -0.65, 0, 0, 1);
+	leaf32.Create(0.06, 0.5, -0.35, 0, 0, 1);
+	leaf33.Create(0.06, 0.65, -0.5, 0, 0, 1);
+	leaf34.Create(0.06, 0.35, -0.5, 0, 0, 1);
+	leaf35.Create(0.06, 0.6, -0.6, 0, 0, 1);
+	leaf36.Create(0.06, 0.6, -0.4, 0, 0, 1);
+	leaf37.Create(0.06, 0.4, -0.6, 0, 0, 1);
+	leaf38.Create(0.06, 0.4, -0.4, 0, 0, 1);
+	middle3.Create(0.1, 0.5, -0.5, 1, 1, 0);
+	//fourth flower
+
+	middle4.Create(0.1, -0.5, 0.5, 1, 1, 0);
+	//fifth flower
+
+	middle5.Create(0.1, -0.5, -0.5, 1, 1, 0);
+	//butterflybody.Create(0.08, 0, 0, 1, 0, 0);
+	
 
 	// Create vertex shader from string
 	unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -453,13 +533,32 @@ void onExit() {
 // Window has become invalid: Redraw
 void onDisplay() {
 	glClearColor(0, 0.2, 0, 0);							// background color 
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the screen	
-	circle2.Draw();
-	circle3.Draw();
-	circle4.Draw();
-	circle5.Draw();
-	circle1.Draw();
-	butterfly.Draw();
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the screen
+	//First flower
+	leaf11.Draw();
+	leaf12.Draw();
+	leaf13.Draw();
+	middle.Draw();
+	//Second flower
+	leaf21.Draw();
+	leaf22.Draw();
+	leaf23.Draw();
+	leaf24.Draw();
+	leaf25.Draw();
+	middle2.Draw();
+	//Third flower
+	leaf31.Draw();
+	leaf32.Draw();
+	leaf33.Draw();
+	leaf34.Draw();
+	leaf35.Draw();
+	leaf36.Draw();
+	leaf37.Draw();
+	leaf38.Draw();
+	middle3.Draw();
+	middle4.Draw();
+	middle5.Draw();
+	//butterflybody.Draw();
 	glutSwapBuffers();									// exchange the two buffers
 }
 
