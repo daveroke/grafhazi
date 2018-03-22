@@ -19,7 +19,7 @@
 //
 // NYILATKOZAT
 // ---------------------------------------------------------------------------------------------
-// Nev    : Kovacs David	
+// Nev    : Kovács Dávid	
 // Neptun : UT55G0
 // ---------------------------------------------------------------------------------------------
 // ezennel kijelentem, hogy a feladatot magam keszitettem, es ha barmilyen segitseget igenybe vettem vagy
@@ -113,6 +113,36 @@ const char * fragmentSource = R"(
 		fragmentColor = vec4(color, 1); // extend RGB to RGBA
 	}
 )";
+
+struct vec3 {
+	float x, y, z;
+
+	vec3(float x0, float y0, float z0 = 0) { x = x0; y = y0; z = z0; }
+
+	vec3 operator*(float a) { return vec3(x * a, y * a, z * a); }
+
+	vec3 operator+(const vec3& v) { // vektor, szín, pont + vektor
+		return vec3(x + v.x, y + v.y, z + v.z);
+	}
+	vec3 operator-(const vec3& v) { // vektor, szín, pont - pont
+		return vec3(x - v.x, y - v.y, z - v.z);
+	}
+	vec3 operator*(const vec3& v) {
+		return vec3(x * v.x, y * v.y, z * v.z);
+	}
+	float Length() { return sqrtf(x * x + y * y + z * z); }
+};
+
+float dot(const vec3& v1, const vec3& v2) {
+	return (v1.x * v2.x + v1.y * v2.y + v1.z * v2.z);
+}
+
+vec3 cross(const vec3& v1, const vec3& v2) {
+	return vec3(v1.y * v2.z - v1.z * v2.y,
+		v1.z * v2.x - v1.x * v2.z,
+		v1.x * v2.y - v1.y * v2.x);
+}
+
 
 // row-major matrix 4x4
 struct mat4 {
@@ -220,7 +250,6 @@ public:
 class Circle {
 	unsigned int vao;	// vertex array object id
 	float phi;			// rotation
-	float pi = M_PI;
 	int leaves;
 	float radius;
 	float xc;
@@ -248,8 +277,8 @@ public:
 		float y[50];
 
 		for (int i = 0; i < 50; i++) {			
-			x[i] = xc + rad*cosf(i*(2*pi/50));
-			y[i] = yc + rad*sinf(i*(2*pi/50));
+			x[i] = xc + rad*cosf(i*(2*M_PI/50));
+			y[i] = yc + rad*sinf(i*(2*M_PI/50));
 		}
 
 		float vertexCoords[100];	// vertex data on the CPU
@@ -329,7 +358,6 @@ public:
 class Leaves {
 	unsigned int vao;	// vertex array object id
 	float phi;			// rotation
-	float pi = M_PI;
 	float radius;
 	float x;
 	float y;
@@ -355,8 +383,8 @@ public:
 		float y[50];
 
 		for (int i = 0; i < 50; i++) {
-			x[i] = c[0] + rad * cosf(i*(2 * pi / 50));
-			y[i] = c[1] + rad * sinf(i*(2 * pi / 50)) / yo;
+			x[i] = c[0] + rad * cosf(i*(2 * M_PI / 50));
+			y[i] = c[1] + rad * sinf(i*(2 * M_PI / 50)) / yo;
 		}
 
 		float vertexCoords[100];	// vertex data on the CPU
@@ -431,6 +459,113 @@ public:
 	}
 };
 
+class Butterfly {
+	unsigned int vao;	// vertex array object id
+	float phi;			// rotation
+	float radius;
+	float x;
+	float y;
+public:
+	Butterfly() {
+		Animate(0);
+	}
+
+	void Create(float cx, float cy, float yo, float rad, int r, int g, int b) {
+		glGenVertexArrays(1, &vao);	// create 1 vertex array object
+		glBindVertexArray(vao);		// make it active
+
+		unsigned int vbo[2];		// vertex buffer objects
+		glGenBuffers(2, &vbo[0]);	// Generate 2 vertex buffer objects
+
+									// vertex coordinates: vbo[0] -> Attrib Array 0 -> vertexPosition of the vertex shader
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[0]); // make it active, it is an array
+		x = cx;
+		y = cy;
+		float c[] = { cx, cy };
+		float x[50];
+		float y[50];
+
+		for (int i = 0; i < 50; i++) {
+			x[i] = c[0] + rad * cosf(i*(2 * M_PI / 50));
+			y[i] = c[1] + rad * sinf(i*(2 * M_PI / 50)) / yo;
+		}
+
+		float vertexCoords[100];	// vertex data on the CPU
+		int t = 0;
+		for (int i = 0; i < 100; i++) {
+			vertexCoords[t] = x[i];
+			vertexCoords[t + 1] = y[i];
+			t = t + 2;
+		}
+
+		glBufferData(GL_ARRAY_BUFFER,      // copy to the GPU
+			sizeof(vertexCoords),   // number of the vbo in bytes
+			vertexCoords,		   // address of the data array on the CPU
+			GL_STATIC_DRAW);
+
+		// copy to that part of the memory which is not modified 
+		// Map Attribute Array 0 to the current bound vertex buffer (vbo[0])
+		glEnableVertexAttribArray(0);
+		// Data organization of Attribute Array 0 
+		glVertexAttribPointer(0,			// Attribute Array 0
+			2, GL_FLOAT,  // components/attribute, component type
+			GL_FALSE,		// not in fixed point format, do not normalized
+			0, NULL);     // stride and offset: it is tightly packed
+
+						  // vertex colors: vbo[1] -> Attrib Array 1 -> vertexColor of the vertex shader
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[1]); // make it active, it is an array
+
+		float vertexColors[150];	// vertex data on the CPU
+
+		for (int i = 0; i < 150; i = i + 3) {
+			vertexColors[i] = r;
+			vertexColors[i + 1] = g;
+			vertexColors[i + 2] = b;
+		}
+
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertexColors), vertexColors, GL_STATIC_DRAW);	// copy to the GPU
+
+																							// Map Attribute Array 1 to the current bound vertex buffer (vbo[1])
+		glEnableVertexAttribArray(1);  // Vertex position
+									   // Data organization of Attribute Array 1
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL); // Attribute Array 1, components/attribute, component type, normalize?, tightly packed
+	}
+
+	void Animate(float t) { phi = t; }
+
+	void Draw() {
+		mat4 initMatrix(	1, 0, 0, 0,
+							0, 1, 0, 0,
+							0, 0, 1, 0,
+							0, 0, 0, 1);
+
+		/*mat4 MVPTransform(cos(phi), sin(phi), 0, 0,
+			-sin(phi), cos(phi), 0, 0,
+			0, 0, 1, 0,
+			0, 0, 0, 1);
+
+		mat4 pushMatrix(1, 0, 0, 0,
+			0, 1, 0, 0,
+			0, 0, 1, 0,
+			-x, -y, 0, 1);
+
+		mat4 pushBackMatrix(1, 0, 0, 0,
+			0, 1, 0, 0,
+			0, 0, 1, 0,
+			x, y, 0, 1);
+
+		mat4 multi = pushMatrix * MVPTransform * pushBackMatrix;*/
+
+
+		// set GPU uniform matrix variable MVP with the content of CPU variable MVPTransform
+		int location = glGetUniformLocation(shaderProgram, "MVP");
+		if (location >= 0) glUniformMatrix4fv(location, 1, GL_TRUE, initMatrix); // set uniform variable MVP to the MVPTransform
+		else printf("uniform MVP cannot be set\n");
+
+		glBindVertexArray(vao);	// make the vao and its vbos active playing the role of the data source
+		glDrawArrays(GL_TRIANGLE_FAN, 0, 50);	// draw a single triangle with vertices defined in vao
+	}
+};
 // The virtual world
 //Flower middles
 Circle middle;
@@ -443,12 +578,14 @@ Leaves* leaves2;
 Leaves* leaves3;
 Leaves* leaves4;
 Leaves* leaves5;
+Butterfly butterfly;
 
 // Initialization, create an OpenGL context
 void onInitialization() {
 	glViewport(0, 0, windowWidth, windowHeight);
 
-	// Create objects by setting up their vertex data on the GPU	
+	// Create objects by setting up their vertex data on the GPU
+	//first flower init
 	middle.Create(0.1, 0, 0, 1, 1, 0, 3);
 	float cx1[3];
 	float cy1[3];
@@ -463,7 +600,7 @@ void onInitialization() {
 	for (int i = 0; i < 3; i++) {
 		leaves1[i].Create(cx1[i], cy1[i], 1, 0.1, phi1[i], 0, 0, 1);
 	}
-
+	//second flower init
 	middle2.Create(0.1, 0.5, 0.5, 1, 1, 0, 5);
 	float cx2[5];
 	float cy2[5];
@@ -478,7 +615,7 @@ void onInitialization() {
 	for (int i = 0; i < 5; i++) {
 		leaves2[i].Create(cx2[i], cy2[i], 2, 0.1, phi2[i], 0, 0, 1);
 	}
-
+	//third flower init
 	middle3.Create(0.1, 0.5, -0.5, 1, 1, 0, 8);
 	float cx3[8];
 	float cy3[8];
@@ -492,7 +629,7 @@ void onInitialization() {
 	for (int i = 0; i < 8; i++) {
 		leaves3[i].Create(cx3[i], cy3[i], 3, 0.1, phi3[i], 0, 0, 1);
 	}
-
+	//fourth flower init
 	middle4.Create(0.1, -0.5, 0.5, 1, 1, 0, 13);
 	float cx4[13];
 	float cy4[13];
@@ -507,6 +644,7 @@ void onInitialization() {
 	for (int i = 0; i < 13; i++) {
 		leaves4[i].Create(cx4[i], cy4[i], 4, 0.1, phi4[i], 0, 0, 1);
 	}
+	//fifth flower init
 	middle5.Create(0.1, -0.5, -0.5, 1, 1, 0, 21);
 	float cx5[21];
 	float cy5[21];
@@ -521,6 +659,9 @@ void onInitialization() {
 	for (int i = 0; i < 21; i++) {
 		leaves5[i].Create(cx5[i], cy5[i], 5, 0.1, phi5[i], 0, 0, 1);
 	}
+
+	//butterfly init
+	butterfly.Create(0, 0, 2, 0.08, 1, 0, 1);
 
 	// Create vertex shader from string
 	unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -566,31 +707,33 @@ void onExit() {
 void onDisplay() {
 	glClearColor(0, 0.2, 0, 0);							// background color 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the screen
-	//first flower
+	//first flower draw
 	for (int i = 0; i < middle.getLeaves(); i++) {
 		leaves1[i].Draw();
 	}
 	middle.Draw();
-	//second flower
+	//second flower draw
 	for (int i = 0; i < middle2.getLeaves(); i++) {
 		leaves2[i].Draw();
 	}
 	middle2.Draw();
-	//third flower
+	//third flower draw
 	for (int i = 0; i < middle3.getLeaves(); i++) {
 		leaves3[i].Draw();
 	}
 	middle3.Draw();
-	//fourth flower
+	//fourth flower draw
 	for (int i = 0; i < middle4.getLeaves(); i++) {
 		leaves4[i].Draw();
 	}
 	middle4.Draw();
-	//fifth flower
+	//fifth flower draw
 	for (int i = 0; i < middle5.getLeaves(); i++) {
 		leaves5[i].Draw();
 	}
 	middle5.Draw();
+	//butterfly draw
+	butterfly.Draw();
 	glutSwapBuffers();									// exchange the two buffers
 }
 
