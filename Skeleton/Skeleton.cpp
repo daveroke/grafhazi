@@ -243,7 +243,51 @@ public:
 		else printf("uniform MVP cannot be set\n");
 
 		glBindVertexArray(vao);	// make the vao and its vbos active playing the role of the data source
-		glDrawArrays(GL_TRIANGLES, 0, 3);	// draw a single triangle with vertices defined in vao
+		glDrawArrays(GL_LINE_LOOP, 0, 3);	// draw a single triangle with vertices defined in vao
+	}
+};
+
+struct Camera {
+	float wCx, wCy;	// center in world coordinates
+	float wWx, wWy;	// width and height in world coordinates
+public:
+	Camera() {
+		Animate(0);
+	}
+
+	mat4 V() { // view matrix: translates the center to the origin
+		return mat4(1, 0, 0, 0,
+			0, 1, 0, 0,
+			0, 0, 1, 0,
+			-wCx, -wCy, 0, 1);
+	}
+
+	mat4 P() { // projection matrix: scales it to be a square of edge length 2
+		return mat4(2 / wWx, 0, 0, 0,
+			0, 2 / wWy, 0, 0,
+			0, 0, 1, 0,
+			0, 0, 0, 1);
+	}
+
+	mat4 Vinv() { // inverse view matrix
+		return mat4(1, 0, 0, 0,
+			0, 1, 0, 0,
+			0, 0, 1, 0,
+			wCx, wCy, 0, 1);
+	}
+
+	mat4 Pinv() { // inverse projection matrix
+		return mat4(wWx / 2, 0, 0, 0,
+			0, wWy / 2, 0, 0,
+			0, 0, 1, 0,
+			0, 0, 0, 1);
+	}
+
+	void Animate(float t) {
+		wCx = 0; // 10 * cosf(t);
+		wCy = 0;
+		wWx = 20;
+		wWy = 20;
 	}
 };
 
@@ -567,6 +611,7 @@ public:
 	}
 };
 
+//Háromszöggel mûködõ szárnyak
 class Wing {
 	unsigned int vao;	// vertex array object id
 	float phi;			// rotation
@@ -657,6 +702,82 @@ public:
 
 		glBindVertexArray(vao);	// make the vao and its vbos active playing the role of the data source
 		glDrawArrays(GL_TRIANGLES, 0, 3);	// draw a single triangle with vertices defined in vao
+	}
+};
+
+class BezierCurve {
+	std::vector<vec3> cps;	// control pts 
+
+	float B(int i, float t) {
+		int n = cps.size() - 1;    // n degree polynomial = n+1 pts!
+		float choose = 1;
+		for (int j = 1; j <= i; j++) choose *= (float)(n - j + 1) / j;
+		return choose * pow(t, i) * pow(1 - t, n - i);
+	}
+public:
+	void AddControlPoint(vec3 cp) { cps.push_back(cp); }
+
+	vec3 r(float t) {
+		vec3 rr(0, 0, 0);
+		for (int i = 0; i < cps.size(); i++) {
+			rr = rr + cps[i] * B(i, t);
+		}
+		return rr;
+	}
+};
+
+Camera camera;
+
+class LineStrip {
+	GLuint vao, vbo;        // vertex array object, vertex buffer object
+	float  vertexData[100]; // interleaved data of coordinates and colors
+	int    nVertices;       // number of vertices
+public:
+	LineStrip() {
+		nVertices = 0;
+	}
+	void Create() {
+		glGenVertexArrays(1, &vao);
+		glBindVertexArray(vao);
+
+		glGenBuffers(1, &vbo); // Generate 1 vertex buffer object
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		// Enable the vertex attribute arrays
+		glEnableVertexAttribArray(0);  // attribute array 0
+		glEnableVertexAttribArray(1);  // attribute array 1
+									   // Map attribute array 0 to the vertex data of the interleaved vbo
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), reinterpret_cast<void*>(0)); // attribute array, components/attribute, component type, normalize?, stride, offset
+																										// Map attribute array 1 to the color data of the interleaved vbo
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), reinterpret_cast<void*>(2 * sizeof(float)));
+	}
+
+	void AddPoint(float cX, float cY) {
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		if (nVertices >= 20) return;
+
+		vec4 wVertex = vec4(cX, cY, 0, 1) * camera.Pinv() * camera.Vinv();
+		// fill interleaved data
+		vertexData[5 * nVertices] = wVertex.x;
+		vertexData[5 * nVertices + 1] = wVertex.y;
+		vertexData[5 * nVertices + 2] = 1; // red
+		vertexData[5 * nVertices + 3] = 1; // green
+		vertexData[5 * nVertices + 4] = 0; // blue
+		nVertices++;
+		// copy data to the GPU
+		glBufferData(GL_ARRAY_BUFFER, nVertices * 5 * sizeof(float), vertexData, GL_DYNAMIC_DRAW);
+	}
+
+	void Draw() {
+		if (nVertices > 0) {
+			mat4 VPTransform = camera.V() * camera.P();
+
+			int location = glGetUniformLocation(shaderProgram, "MVP");
+			if (location >= 0) glUniformMatrix4fv(location, 1, GL_TRUE, VPTransform);
+			else printf("uniform MVP cannot be set\n");
+
+			glBindVertexArray(vao);
+			glDrawArrays(GL_LINE_STRIP, 0, nVertices);
+		}
 	}
 };
 
@@ -865,6 +986,7 @@ void onIdle() {
 	float sec = time / 1000.0f;				// convert msec to sec
 	wing.Animate(sec);					// animate the triangle object
 	wing2.Animate(sec);
+
 	glutPostRedisplay();					// redraw the scene
 }
 
