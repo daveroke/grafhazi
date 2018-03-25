@@ -786,25 +786,25 @@ public:
 
 			mat4 VPTransform;
 
-			mat4 pushOrigo(1, 0, 0, 0,
-				0, 1, 0, 0,
-				0, 0, 1, 0,
-				-x, -y, 0, 1);
+			mat4 pushOrigo(	1, 0, 0, 0,
+							0, 1, 0, 0,
+							0, 0, 1, 0,
+							-x, -y, 0, 1);
 
-			mat4 rotateZ(1, 0, 0, 0,
-				0, cos(phi), sin(phi), 0,
-				0, -sin(phi), cos(phi), 0,
-				0, 0, 0, 1);
+			mat4 rotateZ(	1, 0, 0, 0,
+							0, cos(phi), sin(phi), 0,
+							0, -sin(phi), cos(phi), 0,
+							0, 0, 0, 1);
 
-			mat4 mirror(-1, 0, 0, 0,
-				0, -1, 0, 0,
-				0, 0, 1, 0,
-				0, 0, 0, 1);
+			mat4 mirror(	-1, 0, 0, 0,
+							0, -1, 0, 0,
+							0, 0, 1, 0,
+							0, 0, 0, 1);
 
-			mat4 pushBack(1, 0, 0, 0,
-				0, 1, 0, 0,
-				0, 0, 1, 0,
-				x, y, 0, 1);
+			mat4 pushBack(	1, 0, 0, 0,
+							0, 1, 0, 0,
+							0, 0, 1, 0,
+							x, y, 0, 1);
 
 			if (mir) {
 				VPTransform = pushOrigo * rotateZ * mirror * camera.V() * camera.P() * pushBack;
