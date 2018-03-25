@@ -612,7 +612,7 @@ public:
 };
 
 //Háromszöggel mûködõ szárnyak
-class Wing {
+/*class Wing {
 	unsigned int vao;	// vertex array object id
 	float phi;			// rotation
 	float x;
@@ -703,40 +703,32 @@ public:
 		glBindVertexArray(vao);	// make the vao and its vbos active playing the role of the data source
 		glDrawArrays(GL_TRIANGLES, 0, 3);	// draw a single triangle with vertices defined in vao
 	}
-};
+};*/
 
-class BezierCurve {
-	std::vector<vec3> cps;	// control pts 
+Camera camera;
 
+//Görbével rajzold szárny
+class Wing {
+	GLuint vao, vbo;        // vertex array object, vertex buffer object
+	float  vertexData[500]; // interleaved data of coordinates and colors
+	std::vector<vec4> cps;	// control pts
+	float phi;
+	float x;
+	float y;
+
+	//BezierCurve számítás
 	float B(int i, float t) {
 		int n = cps.size() - 1;    // n degree polynomial = n+1 pts!
 		float choose = 1;
 		for (int j = 1; j <= i; j++) choose *= (float)(n - j + 1) / j;
 		return choose * pow(t, i) * pow(1 - t, n - i);
 	}
+
 public:
-	void AddControlPoint(vec3 cp) { cps.push_back(cp); }
-
-	vec3 r(float t) {
-		vec3 rr(0, 0, 0);
-		for (int i = 0; i < cps.size(); i++) {
-			rr = rr + cps[i] * B(i, t);
-		}
-		return rr;
-	}
-};
-
-Camera camera;
-
-class LineStrip {
-	GLuint vao, vbo;        // vertex array object, vertex buffer object
-	float  vertexData[100]; // interleaved data of coordinates and colors
-	int    nVertices;       // number of vertices
-public:
-	LineStrip() {
-		nVertices = 0;
+	Wing() {
 	}
 	void Create() {
+		cps.clear();
 		glGenVertexArrays(1, &vao);
 		glBindVertexArray(vao);
 
@@ -753,30 +745,81 @@ public:
 
 	void AddPoint(float cX, float cY) {
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		if (nVertices >= 20) return;
 
-		vec4 wVertex = vec4(cX, cY, 0, 1) * camera.Pinv() * camera.Vinv();
+		vec4 controlpoint = vec4(cX, cY, 0, 1) * camera.Pinv() * camera.Vinv();
+
+		cps.push_back(controlpoint);
+
 		// fill interleaved data
-		vertexData[5 * nVertices] = wVertex.x;
-		vertexData[5 * nVertices + 1] = wVertex.y;
-		vertexData[5 * nVertices + 2] = 1; // red
-		vertexData[5 * nVertices + 3] = 1; // green
-		vertexData[5 * nVertices + 4] = 0; // blue
-		nVertices++;
+		for (int i = 0; i < 100; i++) {
+			vec4 wVertex = r((float)(i / (float)99));
+			vertexData[5 * i] = wVertex.x;
+			vertexData[5 * i + 1] = wVertex.y;
+			vertexData[5 * i + 2] = 0.5; // red
+			vertexData[5 * i + 3] = 0; // green
+			vertexData[5 * i + 4] = 0; // blue
+			x = wVertex.x;
+			y = wVertex.y;
+		}
 		// copy data to the GPU
-		glBufferData(GL_ARRAY_BUFFER, nVertices * 5 * sizeof(float), vertexData, GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, 100 * 5 * sizeof(float), vertexData, GL_DYNAMIC_DRAW);
 	}
 
-	void Draw() {
-		if (nVertices > 0) {
-			mat4 VPTransform = camera.V() * camera.P();
+	//BezierCurve számítás
+	vec4 r(float t) {
+		vec4 rr(0, 0, 0, 1);
+		for (int i = 0; i < cps.size(); i++) {
+			float tx;
+			float ty;
+			tx = (cps[i].x * B(i, t));
+			ty = (cps[i].y * B(i, t));
+			rr.x = rr.x + tx;
+			rr.y = rr.y + ty;
+		}
+		return rr;
+	}
+
+	void Animate(float t) { phi = t; }
+
+	void Draw(bool mir) {
+		if (cps.size() > 0) {
+
+			mat4 VPTransform;
+
+			mat4 pushOrigo(1, 0, 0, 0,
+				0, 1, 0, 0,
+				0, 0, 1, 0,
+				-x, -y, 0, 1);
+
+			mat4 rotateZ(1, 0, 0, 0,
+				0, cos(phi), sin(phi), 0,
+				0, -sin(phi), cos(phi), 0,
+				0, 0, 0, 1);
+
+			mat4 mirror(-1, 0, 0, 0,
+				0, -1, 0, 0,
+				0, 0, 1, 0,
+				0, 0, 0, 1);
+
+			mat4 pushBack(1, 0, 0, 0,
+				0, 1, 0, 0,
+				0, 0, 1, 0,
+				x, y, 0, 1);
+
+			if (mir) {
+				VPTransform = pushOrigo * rotateZ * mirror * camera.V() * camera.P() * pushBack;
+			}
+			else {
+				VPTransform = pushOrigo * rotateZ * camera.V() * camera.P() * pushBack;
+			}
+			
 
 			int location = glGetUniformLocation(shaderProgram, "MVP");
 			if (location >= 0) glUniformMatrix4fv(location, 1, GL_TRUE, VPTransform);
 			else printf("uniform MVP cannot be set\n");
 
 			glBindVertexArray(vao);
-			glDrawArrays(GL_LINE_STRIP, 0, nVertices);
+			glDrawArrays(GL_TRIANGLE_FAN, 0, 100);
 		}
 	}
 };
@@ -794,8 +837,7 @@ Leaves* leaves3;
 Leaves* leaves4;
 Leaves* leaves5;
 Butterfly butterfly;
-Wing wing;
-Wing wing2;
+Wing ls;
 
 // Initialization, create an OpenGL context
 void onInitialization() {
@@ -878,9 +920,27 @@ void onInitialization() {
 	}
 
 	//butterfly init
-	butterfly.Create(0, 0, 2, 0.08, 1, 0, 1);
-	wing.Create(0, 0);
-	wing2.Create(0, 0);
+	butterfly.Create(0, 0, 2, 0.08, 1, 0, 0);
+	ls.Create();
+	ls.AddPoint(0, 0);
+	ls.AddPoint(0.05, 0.02);
+	ls.AddPoint(0.1, 0.01);
+	ls.AddPoint(0.15, 0.05);
+	ls.AddPoint(0.2, 0.1);
+	ls.AddPoint(0.18, 0.2);
+	ls.AddPoint(0.15, 0.1);
+	ls.AddPoint(0.1, 0.05);
+	ls.AddPoint(0.05, 0.02);
+	ls.AddPoint(-0.05, 0.02);
+	ls.AddPoint(-0.1, 0.05);
+	ls.AddPoint(-0.15, 0.05);
+	ls.AddPoint(-0.18, 0.2);
+	ls.AddPoint(-0.2, 0.1);
+	ls.AddPoint(-0.15, 0.05);
+	ls.AddPoint(-0.1, 0.01);
+	ls.AddPoint(-0.05, 0.02);
+	ls.AddPoint(0, 0);
+
 
 	// Create vertex shader from string
 	unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -952,8 +1012,8 @@ void onDisplay() {
 	}
 	middle5.Draw();
 	//butterfly draw
-	wing.Draw(true);
-	wing2.Draw(false);
+	ls.Draw(true);
+	ls.Draw(false);
 	butterfly.Draw();
 	glutSwapBuffers();									// exchange the two buffers
 }
@@ -984,9 +1044,7 @@ void onMouseMotion(int pX, int pY) {
 void onIdle() {
 	long time = glutGet(GLUT_ELAPSED_TIME); // elapsed time since the start of the program
 	float sec = time / 1000.0f;				// convert msec to sec
-	wing.Animate(sec);					// animate the triangle object
-	wing2.Animate(sec);
-
+	ls.Animate(sec);
 	glutPostRedisplay();					// redraw the scene
 }
 
