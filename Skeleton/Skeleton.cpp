@@ -792,9 +792,15 @@ public:
 							-x, -y, 0, 1);
 
 			mat4 rotateZ(	1, 0, 0, 0,
-							0, cos(phi), sin(phi), 0,
-							0, -sin(phi), cos(phi), 0,
+							0, -cos(phi), 0, 0,
+							0, 0, 1, 0,
 							0, 0, 0, 1);
+
+			mat4 rotateZ2(	1, 0, 0, 0,
+							0, cos(phi), 0, 0,
+							0, 0, 1, 0,
+							0, 0, 0, 1);
+			mat4 rot;
 
 			mat4 mirror(	-1, 0, 0, 0,
 							0, -1, 0, 0,
@@ -806,11 +812,18 @@ public:
 							0, 0, 1, 0,
 							x, y, 0, 1);
 
+			if (cos(phi) >= 0) {
+				rot = rotateZ;
+			}
+			else if(cos(phi) <= 0) {
+				rot = rotateZ2;
+			}
+
 			if (mir) {
-				VPTransform = pushOrigo * rotateZ * mirror * camera.V() * camera.P() * pushBack;
+				VPTransform = pushOrigo * rot * mirror * camera.V() * camera.P() * pushBack;
 			}
 			else {
-				VPTransform = pushOrigo * rotateZ * camera.V() * camera.P() * pushBack;
+				VPTransform = pushOrigo * rot * camera.V() * camera.P() * pushBack;
 			}
 			
 
